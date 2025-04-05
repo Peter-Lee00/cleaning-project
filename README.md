@@ -5,26 +5,27 @@ A modern web application connecting home owners with freelance cleaners.
 ## Features
 
 - 🔐 Multi-role user system (Admin, Cleaner, Home Owner)
-- 🧹 Cleaner service management
-- 🔍 Advanced search and filtering
-- 📊 Analytics and tracking
-- 📅 Booking and scheduling
-- 💼 Service history and reporting
+- 🧹 Service and category management
+- 📅 Booking management with status tracking
+- ⭐ Rating and review system
+- 📊 Analytics for cleaners, home owners, and platform
+- 💼 User profiles and history
 
 ## Tech Stack
 
-### Frontend
+### Backend
+- Node.js & Express
+- TypeScript
+- Object-Oriented Design
+- In-memory data storage with DataStore pattern
+- RESTful API architecture
+
+### Frontend (Coming Soon)
 - Next.js 15 (App Router)
 - TypeScript
 - Shadcn UI
 - Tailwind CSS
 - React Server Components
-
-### Backend
-- Node.js
-- TypeScript
-- Object-Oriented Design
-- In-memory data storage
 
 ## Getting Started
 
@@ -36,57 +37,116 @@ A modern web application connecting home owners with freelance cleaners.
 
 1. Clone the repository
 ```bash
-git clone [repository-url]
+git clone https://github.com/Peter-Lee00/cleaning-project.git
+cd cleaning-project
 ```
 
-2. Install dependencies
+2. Install backend dependencies
 ```bash
-# Install backend dependencies
 cd backend
-npm install
-
-# Install frontend dependencies
-cd ../frontend
 npm install
 ```
 
-3. Start the development servers
+3. Start the development server
 ```bash
-# Start backend server
-cd backend
 npm run dev
+```
 
-# Start frontend server
-cd ../frontend
-npm run dev
+4. Generate test data (optional)
+```bash
+npm run generate-data
 ```
 
 ## Project Structure
 
 ```
-├── frontend/           # Next.js frontend application
-│   ├── app/           # App router pages
-│   ├── components/    # React components
-│   ├── lib/          # Utility functions
-│   └── types/        # TypeScript types
+├── backend/                 # Node.js backend application
+│   ├── src/                # Source code
+│   │   ├── data/          # Data storage layer
+│   │   │   └── DataStore.ts
+│   │   ├── models/        # Domain models
+│   │   │   ├── User.ts
+│   │   │   ├── Service.ts
+│   │   │   └── Booking.ts
+│   │   ├── services/      # Business logic
+│   │   │   ├── UserService.ts
+│   │   │   ├── ServiceService.ts
+│   │   │   └── BookingService.ts
+│   │   ├── scripts/       # Utility scripts
+│   │   │   └── generateTestData.ts
+│   │   └── index.ts       # Express application setup
+│   ├── package.json       # Dependencies and scripts
+│   ├── tsconfig.json      # TypeScript configuration
+│   └── .eslintrc.json     # ESLint configuration
 │
-├── backend/           # Node.js backend application
-│   ├── src/          # Source code
-│   │   ├── models/   # Domain models
-│   │   ├── services/ # Business logic
-│   │   └── api/      # API routes
-│   └── tests/        # Test files
-│
-└── docs/             # Project documentation
+└── frontend/              # Next.js frontend (Coming Soon)
 ```
+
+## API Endpoints
+
+### User Management
+- `POST /api/users/register` - Register new user (Cleaner/Home Owner/Admin)
+- `POST /api/users/login` - User login
+- `PUT /api/users/:id` - Update user profile
+- `GET /api/users` - Get all users
+
+### Service Management
+- `POST /api/services` - Create new service
+- `GET /api/services` - Get all services
+- `GET /api/services/categories` - Get all service categories
+- `GET /api/services/search` - Search services by criteria
+
+### Booking Management
+- `POST /api/bookings` - Create new booking
+- `GET /api/bookings` - Get all bookings
+- `PUT /api/bookings/:id/status` - Update booking status
+- `POST /api/bookings/:id/review` - Add review to booking
+
+### Analytics
+- `GET /api/analytics/cleaner/:id` - Get cleaner statistics
+- `GET /api/analytics/homeowner/:id` - Get home owner statistics
+- `GET /api/analytics/platform` - Get platform-wide analytics
+
+## Data Models
+
+### User Types
+- **Cleaner**: Professional service provider
+  - Services offered
+  - Hourly rate
+  - Availability
+  - Rating
+  - Job statistics
+
+- **Home Owner**: Service requester
+  - Booking history
+  - Shortlisted cleaners
+
+- **Admin**: Platform manager
+  - User management
+  - Service oversight
+  - Analytics access
+
+### Service
+- Name
+- Description
+- Category
+- Base price
+- Duration
+
+### Booking
+- Cleaner and home owner references
+- Service details
+- Scheduled date
+- Status (Pending/Confirmed/Completed/Cancelled)
+- Review and rating
 
 ## Development Guidelines
 
-- Follow TypeScript best practices
-- Use functional components with hooks
+- Use TypeScript for type safety
+- Follow OOP principles for code organization
 - Implement proper error handling
-- Write unit tests for critical functionality
-- Follow the Git flow branching strategy
+- Document API endpoints and models
+- Write clean, maintainable code
 
 ## License
 
