@@ -4,7 +4,7 @@ Backend for group project
 
 ## Features
 
-- User management (Admin, Cleaner, Home Owner)
+- User management (Admin, Cleaner, Home Owner, Platform Manager)
 - Service management and categorization
 - Booking system
 - Analytics and reporting
