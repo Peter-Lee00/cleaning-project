@@ -1,31 +1,63 @@
-# CleanConnect - C2C Freelance Home Cleaning Platform
+# CleanConnect Platform
 
-A modern web application connecting home owners with freelance cleaners.
+A full-stack application connecting homeowners with cleaning service providers. Built with TypeScript, Express.js, and Next.js.
+
+## Project Structure
+
+```
+cleaning-project/
+├── backend/           # Express.js API
+│   ├── src/
+│   │   ├── models/   # Data models
+│   │   ├── services/ # Business logic
+│   │   ├── data/     # Data storage
+│   │   └── scripts/  # Utility scripts
+│   └── package.json
+└── frontend/         # Next.js application
+    ├── src/
+    │   ├── app/     # App router pages
+    │   ├── components/ # React components
+    │   └── lib/     # Utilities and API
+    └── package.json
+```
 
 ## Features
 
-- 🔐 Multi-role user system (Admin, Cleaner, Home Owner)
-- 🧹 Service and category management
-- 📅 Booking management with status tracking
-- ⭐ Rating and review system
-- 📊 Analytics for cleaners, home owners, and platform
-- 💼 User profiles and history
-
-## Tech Stack
-
 ### Backend
-- Node.js & Express
-- TypeScript
-- Object-Oriented Design
-- In-memory data storage with DataStore pattern
-- RESTful API architecture
+- User authentication and authorization
+- Service management (categories, services)
+- Booking system with status tracking
+- Review and rating system
+- In-memory data store with TypeScript types
 
-### Frontend (Coming Soon)
-- Next.js 15 (App Router)
-- TypeScript
-- Shadcn UI
-- Tailwind CSS
-- React Server Components
+### Frontend
+- Modern UI with Tailwind CSS
+- Responsive design
+- User authentication flows
+- Dashboard for both cleaners and homeowners
+- Service browsing and booking
+
+## API Endpoints
+
+### Authentication
+- `POST /api/users/register` - Register a new user
+- `POST /api/users/login` - Login user
+
+### User Management
+- `GET /api/users` - Get all users (with optional role filter)
+- `PUT /api/users/:id` - Update user profile
+- `DELETE /api/users/:id` - Delete user
+
+### Service Management
+- `GET /api/services` - Get services (with filters)
+- `POST /api/services` - Create new service
+- `GET /api/services/all` - Get all services
+
+### Booking Management
+- `POST /api/bookings` - Create booking
+- `PUT /api/bookings/:id/status` - Update booking status
+- `POST /api/bookings/:id/review` - Add review
+- `GET /api/bookings` - Get all bookings
 
 ## Getting Started
 
@@ -35,118 +67,50 @@ A modern web application connecting home owners with freelance cleaners.
 
 ### Installation
 
-1. Clone the repository
+1. Clone the repository:
 ```bash
-git clone https://github.com/Peter-Lee00/cleaning-project.git
+git clone https://github.com/yourusername/cleaning-project.git
 cd cleaning-project
 ```
 
-2. Install backend dependencies
+2. Install dependencies:
 ```bash
+# Install root dependencies
+npm install
+
+# Install backend dependencies
 cd backend
+npm install
+
+# Install frontend dependencies
+cd ../frontend
 npm install
 ```
 
-3. Start the development server
+3. Start development servers:
 ```bash
+# Start backend server (from backend directory)
+npm run dev
+
+# Start frontend server (from frontend directory)
 npm run dev
 ```
 
-4. Generate test data (optional)
-```bash
-npm run generate-data
-```
+The backend will run on http://localhost:3001 and the frontend on http://localhost:3000.
 
-## Project Structure
+## Development
 
-```
-├── backend/                 # Node.js backend application
-│   ├── src/                # Source code
-│   │   ├── data/          # Data storage layer
-│   │   │   └── DataStore.ts
-│   │   ├── models/        # Domain models
-│   │   │   ├── User.ts
-│   │   │   ├── Service.ts
-│   │   │   └── Booking.ts
-│   │   ├── services/      # Business logic
-│   │   │   ├── UserService.ts
-│   │   │   ├── ServiceService.ts
-│   │   │   └── BookingService.ts
-│   │   ├── scripts/       # Utility scripts
-│   │   │   └── generateTestData.ts
-│   │   └── index.ts       # Express application setup
-│   ├── package.json       # Dependencies and scripts
-│   ├── tsconfig.json      # TypeScript configuration
-│   └── .eslintrc.json     # ESLint configuration
-│
-└── frontend/              # Next.js frontend (Coming Soon)
-```
+### Backend
+- Written in TypeScript
+- Uses service-based architecture
+- In-memory data store (can be extended to use a database)
+- Includes test data generation script
 
-## API Endpoints
-
-### User Management
-- `POST /api/users/register` - Register new user (Cleaner/Home Owner/Admin)
-- `POST /api/users/login` - User login
-- `PUT /api/users/:id` - Update user profile
-- `GET /api/users` - Get all users
-
-### Service Management
-- `POST /api/services` - Create new service
-- `GET /api/services` - Get all services
-- `GET /api/services/categories` - Get all service categories
-- `GET /api/services/search` - Search services by criteria
-
-### Booking Management
-- `POST /api/bookings` - Create new booking
-- `GET /api/bookings` - Get all bookings
-- `PUT /api/bookings/:id/status` - Update booking status
-- `POST /api/bookings/:id/review` - Add review to booking
-
-### Analytics
-- `GET /api/analytics/cleaner/:id` - Get cleaner statistics
-- `GET /api/analytics/homeowner/:id` - Get home owner statistics
-- `GET /api/analytics/platform` - Get platform-wide analytics
-
-## Data Models
-
-### User Types
-- **Cleaner**: Professional service provider
-  - Services offered
-  - Hourly rate
-  - Availability
-  - Rating
-  - Job statistics
-
-- **Home Owner**: Service requester
-  - Booking history
-  - Shortlisted cleaners
-
-- **Admin**: Platform manager
-  - User management
-  - Service oversight
-  - Analytics access
-
-### Service
-- Name
-- Description
-- Category
-- Base price
-- Duration
-
-### Booking
-- Cleaner and home owner references
-- Service details
-- Scheduled date
-- Status (Pending/Confirmed/Completed/Cancelled)
-- Review and rating
-
-## Development Guidelines
-
-- Use TypeScript for type safety
-- Follow OOP principles for code organization
-- Implement proper error handling
-- Document API endpoints and models
-- Write clean, maintainable code
+### Frontend
+- Built with Next.js 15 (App Router)
+- Uses React 19
+- Styled with Tailwind CSS
+- TypeScript for type safety
 
 ## License
 
