@@ -1,18 +1,16 @@
-import { v4 as uuidv4 } from 'uuid';
+// Import UUID to generate random IDs
+import { v4 as uuid } from 'uuid';
 
-/**
- * Enum representing the possible states of a booking
- * - PENDING: Initial state when booking is created
- * - CONFIRMED: Booking has been accepted by both parties
- * - COMPLETED: Service has been provided and completed
- * - CANCELLED: Booking has been cancelled by either party
- */
-export enum BookingStatus {
-  PENDING = 'PENDING',
-  CONFIRMED = 'CONFIRMED',
-  COMPLETED = 'COMPLETED',
-  CANCELLED = 'CANCELLED'
-}
+// List of possible booking statuses
+const BookingStatus = {
+  PENDING: 'PENDING',     // when booking is first created
+  CONFIRMED: 'CONFIRMED', // when both parties accept
+  COMPLETED: 'COMPLETED', // when service is done
+  CANCELLED: 'CANCELLED'  // when booking is cancelled
+} as const;
+
+// Helper type for TypeScript
+type BookingStatusType = typeof BookingStatus[keyof typeof BookingStatus];
 
 /**
  * Interface defining the structure of a booking
@@ -23,7 +21,7 @@ export interface IBooking {
   cleanerId: string;            // ID of the cleaner providing the service
   homeOwnerId: string;          // ID of the home owner receiving the service
   serviceId: string;            // ID of the service being booked
-  status: BookingStatus;        // Current status of the booking
+  status: BookingStatusType;    // Current status of the booking
   scheduledDate: Date;          // When the service is scheduled
   duration: number;             // Duration in minutes
   totalPrice: number;           // Total price for the service
@@ -34,16 +32,14 @@ export interface IBooking {
   updatedAt: Date;              // When the booking was last updated
 }
 
-/**
- * Booking class implementing the IBooking interface
- * Handles the business logic for booking management
- */
-export class Booking implements IBooking {
+// Main booking class
+class Booking implements IBooking {
+  // Basic booking info
   public readonly id: string;
   public cleanerId: string;
   public homeOwnerId: string;
   public serviceId: string;
-  public status: BookingStatus;
+  public status: BookingStatusType;
   public scheduledDate: Date;
   public duration: number;
   public totalPrice: number;
@@ -53,103 +49,66 @@ export class Booking implements IBooking {
   public readonly createdAt: Date;
   public updatedAt: Date;
 
-  /**
-   * Creates a new booking
-   * @param cleanerId - ID of the cleaner
-   * @param homeOwnerId - ID of the home owner
-   * @param serviceId - ID of the service
-   * @param scheduledDate - When the service is scheduled
-   * @param duration - Duration in minutes
-   * @param totalPrice - Total price for the service
-   * @param notes - Optional notes about the booking
-   */
+  // Make a new booking
   constructor(
-    cleanerId: string,
-    homeOwnerId: string,
-    serviceId: string,
-    scheduledDate: Date,
-    duration: number,
-    totalPrice: number,
-    notes?: string
+    cleanerId: string,    // who will clean
+    homeOwnerId: string,  // who needs cleaning
+    serviceId: string,    // what type of cleaning
+    scheduledDate: Date,  // when to clean
+    duration: number,     // how long it takes
+    totalPrice: number,   // how much it costs
+    notes?: string        // extra info
   ) {
-    this.id = uuidv4();                    // Generate unique ID
+    // Set all the basic info
+    this.id = uuid();
     this.cleanerId = cleanerId;
     this.homeOwnerId = homeOwnerId;
     this.serviceId = serviceId;
-    this.status = BookingStatus.PENDING;   // Set initial status
+    this.status = BookingStatus.PENDING;
     this.scheduledDate = scheduledDate;
     this.duration = duration;
     this.totalPrice = totalPrice;
     this.notes = notes;
+    
+    // Set when it was created
     this.createdAt = new Date();
     this.updatedAt = new Date();
   }
 
-  /**
-   * Confirms the booking
-   * Only possible if booking is in PENDING state
-   */
-  public confirm(): void {
-    if (this.status === BookingStatus.PENDING) {
-      this.status = BookingStatus.CONFIRMED;
-      this.updatedAt = new Date();
-    }
+  // Change the booking status
+  public setStatus(newStatus: BookingStatusType) {
+    this.status = newStatus;
+    this.updatedAt = new Date();
   }
 
-  /**
-   * Marks the booking as completed
-   * Only possible if booking is in CONFIRMED state
-   */
-  public complete(): void {
-    if (this.status === BookingStatus.CONFIRMED) {
-      this.status = BookingStatus.COMPLETED;
-      this.updatedAt = new Date();
-    }
-  }
-
-  /**
-   * Cancels the booking
-   * Not possible if booking is already COMPLETED
-   */
-  public cancel(): void {
+  // Add a review after cleaning
+  public addReview(rating: number, review: string) {
+    // Can only review if cleaning is done
     if (this.status !== BookingStatus.COMPLETED) {
-      this.status = BookingStatus.CANCELLED;
-      this.updatedAt = new Date();
+      throw new Error('Can only review completed bookings');
     }
+    
+    // Save the review
+    this.rating = rating;
+    this.review = review;
+    this.updatedAt = new Date();
   }
 
-  /**
-   * Adds a review to the booking
-   * Only possible if booking is COMPLETED
-   * @param rating - Rating from 1-5
-   * @param review - Review text
-   */
-  public addReview(rating: number, review: string): void {
-    if (this.status === BookingStatus.COMPLETED) {
-      this.rating = rating;
-      this.review = review;
-      this.updatedAt = new Date();
-    }
-  }
-
-  /**
-   * Updates the scheduled date
-   * Only possible if booking is in PENDING state
-   * @param newDate - New scheduled date
-   */
-  public updateScheduledDate(newDate: Date): void {
+  // Change the cleaning date
+  public updateScheduledDate(newDate: Date) {
+    // Can only change date if not started
     if (this.status === BookingStatus.PENDING) {
       this.scheduledDate = newDate;
       this.updatedAt = new Date();
     }
   }
 
-  /**
-   * Updates the booking notes
-   * @param notes - New notes
-   */
-  public updateNotes(notes: string): void {
-    this.notes = notes;
+  // Change the extra notes
+  public updateNotes(newNotes: string) {
+    this.notes = newNotes;
     this.updatedAt = new Date();
   }
-} 
+}
+
+// Make these available to other files
+export { Booking, BookingStatus }; 

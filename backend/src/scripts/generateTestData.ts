@@ -1,4 +1,4 @@
-import { UserRole, User, Cleaner, HomeOwner } from '../models/User';
+import { User } from '../models/User';
 import { UserService } from '../services/UserService';
 import { ServiceService } from '../services/ServiceService';
 import { BookingService } from '../services/BookingService';
@@ -50,10 +50,8 @@ async function generateTestData() {
   ];
 
   // Create categories in the database
-  const createdCategories = await Promise.all(
-    categories.map(category => 
-      serviceService.createCategory(category.name, category.description)
-    )
+  const createdCategories = categories.map(category => 
+    serviceService.createCategory(category.name, category.description)
   );
 
   // Step 2: Generate services for each category
@@ -65,65 +63,58 @@ async function generateTestData() {
       const service = serviceService.createService(
         `${category.name} Service ${i + 1}`,
         `Description for ${category.name} Service ${i + 1}`,
-        category.name,
+        category.id,
         getRandomNumber(30, 100),  // Base price between $30-$100
-        getRandomNumber(60, 240)   // Duration between 1-4 hours
+        getRandomNumber(1, 4)      // Duration between 1-4 hours
       );
       services.push(service);
     }
   }
 
   // Step 3: Generate users
-  const users: {
-    cleaners: Cleaner[];
-    homeOwners: HomeOwner[];
-  } = {
-    cleaners: [],
-    homeOwners: []
+  const users = {
+    cleaners: [] as User[],
+    homeOwners: [] as User[]
   };
 
-  // Generate 50 cleaners
-  for (let i = 0; i < 50; i++) {
-    const cleaner = await userService.registerUser(
+  // Generate 10 cleaners
+  for (let i = 0; i < 10; i++) {
+    const cleaner = userService.register(
       `cleaner${i + 1}@example.com`,
       'password123',
-      `Cleaner`,
-      `${i + 1}`,
-      UserRole.CLEANER,
-      getRandomNumber(25, 50)  // Hourly rate between $25-$50
-    ) as Cleaner;
+      `Cleaner ${i + 1}`,
+      'cleaner'
+    );
     users.cleaners.push(cleaner);
   }
 
-  // Generate 100 home owners
-  for (let i = 0; i < 100; i++) {
-    const homeOwner = await userService.registerUser(
+  // Generate 20 home owners
+  for (let i = 0; i < 20; i++) {
+    const homeOwner = userService.register(
       `homeowner${i + 1}@example.com`,
       'password123',
-      `HomeOwner`,
-      `${i + 1}`,
-      UserRole.HOME_OWNER
-    ) as HomeOwner;
+      `HomeOwner ${i + 1}`,
+      'homeowner'
+    );
     users.homeOwners.push(homeOwner);
   }
 
   // Step 4: Generate bookings
   const startDate = new Date();
-  startDate.setMonth(startDate.getMonth() - 6); // 6 months ago
+  startDate.setMonth(startDate.getMonth() - 1); // 1 month ago
 
   const endDate = new Date();
-  endDate.setMonth(endDate.getMonth() + 6); // 6 months from now
+  endDate.setMonth(endDate.getMonth() + 2); // 2 months from now
 
   // Generate bookings for each cleaner
   for (const cleaner of users.cleaners) {
-    // Each cleaner gets 10-20 bookings
-    const bookingCount = getRandomNumber(10, 20);
+    // Each cleaner gets 5-10 bookings
+    const bookingCount = getRandomNumber(5, 10);
     for (let i = 0; i < bookingCount; i++) {
       // Randomly select a service and home owner
       const service = services[getRandomNumber(0, services.length - 1)];
       const homeOwner = users.homeOwners[getRandomNumber(0, users.homeOwners.length - 1)];
       const scheduledDate = getRandomDate(startDate, endDate);
-      const duration = getRandomNumber(60, 240);  // Duration between 1-4 hours
 
       // Create the booking
       const booking = bookingService.createBooking(
@@ -131,7 +122,8 @@ async function generateTestData() {
         homeOwner.id,
         service.id,
         scheduledDate,
-        duration
+        service.hours,
+        'Test booking notes'
       );
 
       // Randomly set booking status

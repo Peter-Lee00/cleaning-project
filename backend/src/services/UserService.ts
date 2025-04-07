@@ -1,176 +1,175 @@
 import { User, Admin, Cleaner, HomeOwner, UserRole } from '../models/User';
 import { DataStore } from '../data/DataStore';
 
-export class UserService {
-  private dataStore: DataStore;
+// Map our simple roles to UserRole enum
+const roleMap = {
+  'admin': UserRole.ADMIN,
+  'cleaner': UserRole.CLEANER,
+  'homeowner': UserRole.HOME_OWNER
+} as const;
 
+// List of roles we allow
+const validRoles = ['admin', 'cleaner', 'homeowner'] as const;
+type ValidRole = typeof validRoles[number];
+
+// Handle all user-related stuff
+class UserService {
+  // Store all our data
+  private db: DataStore;
+
+  // Set up the service
   constructor() {
-    this.dataStore = DataStore.getInstance();
+    this.db = DataStore.getInstance();
   }
 
-  // User Retrieval
-  public getUserById(id: string): User {
-    const user = this.dataStore.getUserById(id);
-    if (!user) {
-      throw new Error('User not found');
-    }
-    return user;
-  }
-
-  // User Registration
-  public async registerUser(
+  // Make a new user
+  register(
     email: string,
     password: string,
-    firstName: string,
-    lastName: string,
-    role: UserRole,
-    hourlyRate?: number
-  ): Promise<User> {
-    // Check if user already exists
-    const existingUser = this.dataStore.getUserByEmail(email);
-    if (existingUser) {
-      throw new Error('User with this email already exists');
-    }
+    name: string,
+    role: ValidRole
+  ): User {
+    try {
+      // Check if email exists
+      if (this.db.getUserByEmail(email)) {
+        throw new Error('Email already exists');
+      }
 
-    // Create user based on role
-    let user: User;
-    switch (role) {
-      case UserRole.ADMIN:
-        user = new Admin(email, password, firstName, lastName);
-        break;
-      case UserRole.CLEANER:
-        if (hourlyRate === undefined) {
-          throw new Error('Hourly rate is required for cleaners');
-        }
-        user = new Cleaner(email, password, firstName, lastName, hourlyRate);
-        break;
-      case UserRole.HOME_OWNER:
-        user = new HomeOwner(email, password, firstName, lastName);
-        break;
-      default:
-        throw new Error('Invalid user role');
-    }
+      // Make the right type of user
+      let user: User;
+      if (role === 'admin') {
+        user = new Admin(email, password, name);
+      } else if (role === 'cleaner') {
+        user = new Cleaner(email, password, name);
+      } else {
+        user = new HomeOwner(email, password, name);
+      }
 
-    // Hash password and save user
-    await user.hashPassword();
-    this.dataStore.addUser(user);
-    return user;
+      // Save and return
+      this.db.addUser(user);
+      return user;
+    } catch (err) {
+      const error = err as Error;
+      throw new Error('Could not register user: ' + error.message);
+    }
   }
 
-  // User Authentication
-  public async login(email: string, password: string): Promise<User> {
-    const user = this.dataStore.getUserByEmail(email);
-    if (!user) {
-      throw new Error('User not found');
+  // Log in a user
+  login(email: string, password: string): User {
+    try {
+      const user = this.db.getUserByEmail(email);
+      if (!user) {
+        throw new Error('User not found');
+      }
+      if (user.password !== password) {
+        throw new Error('Wrong password');
+      }
+      return user;
+    } catch (err) {
+      const error = err as Error;
+      throw new Error('Could not log in: ' + error.message);
     }
-
-    const isValidPassword = await user.comparePassword(password);
-    if (!isValidPassword) {
-      throw new Error('Invalid password');
-    }
-
-    return user;
   }
 
-  // User Profile Management
-  public updateUserProfile(
-    userId: string,
+  // Get a user by their ID
+  getUserById(id: string): User {
+    try {
+      const user = this.db.getUserById(id);
+      if (!user) {
+        throw new Error('User not found');
+      }
+      return user;
+    } catch (err) {
+      const error = err as Error;
+      throw new Error('Could not get user: ' + error.message);
+    }
+  }
+
+  // Update a user's info
+  updateProfile(
+    id: string,
     updates: {
-      firstName?: string;
-      lastName?: string;
+      name?: string;
       email?: string;
-      password?: string;
+      phone?: string;
+      address?: string;
     }
   ): User {
-    const user = this.dataStore.getUserById(userId);
-    if (!user) {
-      throw new Error('User not found');
-    }
+    try {
+      const user = this.getUserById(id);
 
-    if (updates.firstName) user.firstName = updates.firstName;
-    if (updates.lastName) user.lastName = updates.lastName;
-    if (updates.email) {
-      const existingUser = this.dataStore.getUserByEmail(updates.email);
-      if (existingUser && existingUser.id !== userId) {
-        throw new Error('Email already in use');
+      // Check if new email exists
+      if (updates.email && updates.email !== user.email) {
+        if (this.db.getUserByEmail(updates.email)) {
+          throw new Error('Email already exists');
+        }
       }
-      user.email = updates.email;
-    }
 
-    this.dataStore.updateUser(user);
-    return user;
+      // Update the info
+      if (updates.name) user.name = updates.name;
+      if (updates.email) user.email = updates.email;
+      if (updates.phone) user.phone = updates.phone;
+      if (updates.address) user.address = updates.address;
+
+      return user;
+    } catch (err) {
+      const error = err as Error;
+      throw new Error('Could not update profile: ' + error.message);
+    }
   }
 
-  // Cleaner-specific operations
-  public updateCleanerServices(cleanerId: string, services: string[]): Cleaner {
-    const user = this.dataStore.getUserById(cleanerId);
-    if (!user || user.role !== UserRole.CLEANER) {
-      throw new Error('Cleaner not found');
+  // Change a user's password
+  changePassword(id: string, oldPassword: string, newPassword: string): void {
+    try {
+      const user = this.getUserById(id);
+      if (user.password !== oldPassword) {
+        throw new Error('Wrong password');
+      }
+      user.password = newPassword;
+    } catch (err) {
+      const error = err as Error;
+      throw new Error('Could not change password: ' + error.message);
     }
-
-    const cleaner = user as Cleaner;
-    cleaner.services = services;
-    this.dataStore.updateUser(cleaner);
-    return cleaner;
   }
 
-  public updateCleanerAvailability(cleanerId: string, available: boolean): Cleaner {
-    const user = this.dataStore.getUserById(cleanerId);
-    if (!user || user.role !== UserRole.CLEANER) {
-      throw new Error('Cleaner not found');
+  // Delete a user
+  deleteUser(id: string): void {
+    try {
+      const user = this.getUserById(id);
+      this.db.deleteUser(user.id);
+    } catch (err) {
+      const error = err as Error;
+      throw new Error('Could not delete user: ' + error.message);
     }
-
-    const cleaner = user as Cleaner;
-    cleaner.updateAvailability(available);
-    this.dataStore.updateUser(cleaner);
-    return cleaner;
   }
 
-  // Home Owner-specific operations
-  public shortlistCleaner(homeOwnerId: string, cleanerId: string): void {
-    const homeOwner = this.dataStore.getUserById(homeOwnerId);
-    if (!homeOwner || homeOwner.role !== UserRole.HOME_OWNER) {
-      throw new Error('Home owner not found');
+  // Get users by their role
+  getUsersByRole(role: ValidRole): User[] {
+    try {
+      // Convert our simple role to UserRole enum
+      const userRole = roleMap[role];
+      // Get users by role from database
+      return this.db.getUsersByRole(userRole);
+    } catch (err) {
+      const error = err as Error;
+      throw new Error('Could not get users by role: ' + error.message);
     }
-
-    const cleaner = this.dataStore.getUserById(cleanerId);
-    if (!cleaner || cleaner.role !== UserRole.CLEANER) {
-      throw new Error('Cleaner not found');
-    }
-
-    const owner = homeOwner as HomeOwner;
-    owner.shortlistCleaner(cleanerId);
-    this.dataStore.updateUser(owner);
-
-    // Update cleaner stats
-    const cleanerObj = cleaner as Cleaner;
-    cleanerObj.incrementShortlists();
-    this.dataStore.updateUser(cleanerObj);
   }
 
-  public removeFromShortlist(homeOwnerId: string, cleanerId: string): void {
-    const homeOwner = this.dataStore.getUserById(homeOwnerId);
-    if (!homeOwner || homeOwner.role !== UserRole.HOME_OWNER) {
-      throw new Error('Home owner not found');
+  // Get all users
+  getAllUsers(): User[] {
+    try {
+      // Get all users for each role
+      const users = Object.values(roleMap).flatMap(role => 
+        this.db.getUsersByRole(role)
+      );
+      return users;
+    } catch (err) {
+      const error = err as Error;
+      throw new Error('Could not get all users: ' + error.message);
     }
-
-    const owner = homeOwner as HomeOwner;
-    owner.removeFromShortlist(cleanerId);
-    this.dataStore.updateUser(owner);
   }
+}
 
-  // Admin operations
-  public getAllUsers(): User[] {
-    return Array.from(this.dataStore.getUsersByRole(UserRole.ADMIN))
-      .concat(this.dataStore.getUsersByRole(UserRole.CLEANER))
-      .concat(this.dataStore.getUsersByRole(UserRole.HOME_OWNER));
-  }
-
-  public deleteUser(userId: string): void {
-    const user = this.dataStore.getUserById(userId);
-    if (!user) {
-      throw new Error('User not found');
-    }
-    this.dataStore.deleteUser(userId);
-  }
-} 
+// Let other files use this
+export { UserService, validRoles }; 

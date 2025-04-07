@@ -2,19 +2,26 @@ import { Booking, BookingStatus } from '../models/Booking';
 import { DataStore } from '../data/DataStore';
 import { UserService } from './UserService';
 import { ServiceService } from './ServiceService';
-import { UserRole } from '../models/User';
+
+// List of valid booking statuses
+const validStatuses = ['PENDING', 'CONFIRMED', 'COMPLETED', 'CANCELLED'] as const;
+
+// Type for booking status
+type BookingStatusType = typeof validStatuses[number];
 
 /**
  * Service class handling all booking-related operations
  * This includes creation, updates, queries, and analytics
  */
-export class BookingService {
-  private dataStore: DataStore;
+class BookingService {
+  // Store all our data
+  private db: DataStore;
   private userService: UserService;
   private serviceService: ServiceService;
 
+  // Set up the service
   constructor() {
-    this.dataStore = DataStore.getInstance();
+    this.db = DataStore.getInstance();
     this.userService = new UserService();
     this.serviceService = new ServiceService();
   }
@@ -25,48 +32,48 @@ export class BookingService {
    * @param cleanerId - ID of the cleaner
    * @param homeOwnerId - ID of the home owner
    * @param serviceId - ID of the service
-   * @param scheduledDate - When the service is scheduled
-   * @param duration - Duration in minutes
+   * @param date - When the service is scheduled
+   * @param hours - Duration in hours
    * @param notes - Optional notes about the booking
    * @returns The created booking
    */
-  public createBooking(
+  createBooking(
     cleanerId: string,
     homeOwnerId: string,
     serviceId: string,
-    scheduledDate: Date,
-    duration: number,
-    notes?: string
+    date: Date,
+    hours: number,
+    notes: string = ''
   ): Booking {
-    // Validate cleaner exists and is a cleaner
-    const cleaner = this.userService.getUserById(cleanerId);
-    if (!cleaner || cleaner.role !== UserRole.CLEANER) {
-      throw new Error('Invalid cleaner');
+    try {
+      // Check if users exist
+      const cleaner = this.userService.getUserById(cleanerId);
+      const homeOwner = this.userService.getUserById(homeOwnerId);
+      
+      // Check if service exists
+      const service = this.serviceService.getServiceById(serviceId);
+      
+      // Calculate total price
+      const totalPrice = service.getPrice();
+
+      // Make the booking
+      const booking = new Booking(
+        cleanerId,
+        homeOwnerId,
+        serviceId,
+        date,
+        hours,
+        totalPrice,
+        notes
+      );
+
+      // Save it
+      this.db.addBooking(booking);
+      return booking;
+    } catch (err) {
+      const error = err as Error;
+      throw new Error('Could not create booking: ' + error.message);
     }
-
-    // Validate home owner exists and is a home owner
-    const homeOwner = this.userService.getUserById(homeOwnerId);
-    if (!homeOwner || homeOwner.role !== UserRole.HOME_OWNER) {
-      throw new Error('Invalid home owner');
-    }
-
-    // Validate service exists and calculate total price
-    const service = this.serviceService.getServiceById(serviceId);
-    const totalPrice = service.basePrice * (duration / 60); // Convert duration to hours
-
-    // Create and save the booking
-    const booking = new Booking(
-      cleanerId,
-      homeOwnerId,
-      serviceId,
-      scheduledDate,
-      duration,
-      totalPrice,
-      notes
-    );
-
-    this.dataStore.addBooking(booking);
-    return booking;
   }
 
   /**
@@ -75,56 +82,45 @@ export class BookingService {
    * @returns The booking
    * @throws Error if booking not found
    */
-  public getBookingById(id: string): Booking {
-    const booking = this.dataStore.getBookingById(id);
+  getBookingById(id: string): Booking {
+    const booking = this.db.getBookingById(id);
     if (!booking) {
-      throw new Error('Booking not found');
+      throw new Error('No booking found with ID: ' + id);
     }
     return booking;
+  }
+
+  /**
+   * Checks if a status is valid
+   * @param status - Booking status
+   * @returns True if status is valid, false otherwise
+   */
+  private isValidStatus(status: string): status is BookingStatusType {
+    return validStatuses.includes(status as BookingStatusType);
   }
 
   /**
    * Updates the status of a booking
    * Handles state transitions (PENDING -> CONFIRMED -> COMPLETED)
    * @param id - Booking ID
-   * @param status - New status
+   * @param newStatus - New status
    * @returns Updated booking
    */
-  public updateBookingStatus(id: string, status: BookingStatus): Booking {
-    const booking = this.getBookingById(id);
+  updateBookingStatus(id: string, newStatus: string): Booking {
+    try {
+      // Check if status is valid
+      if (!this.isValidStatus(newStatus)) {
+        throw new Error('Invalid booking status: ' + newStatus);
+      }
 
-    switch (status) {
-      case BookingStatus.PENDING:
-        // No action needed, this is the default state
-        break;
-      case BookingStatus.CONFIRMED:
-        booking.confirm();
-        break;
-      case BookingStatus.COMPLETED:
-        booking.complete();
-        break;
-      case BookingStatus.CANCELLED:
-        booking.cancel();
-        break;
-      default:
-        throw new Error('Invalid booking status');
+      const booking = this.getBookingById(id);
+      booking.setStatus(newStatus);
+      this.db.updateBooking(booking);
+      return booking;
+    } catch (err) {
+      const error = err as Error;
+      throw new Error('Could not update booking status: ' + error.message);
     }
-
-    this.dataStore.updateBooking(booking);
-    return booking;
-  }
-
-  /**
-   * Updates the scheduled date of a booking
-   * @param id - Booking ID
-   * @param newDate - New scheduled date
-   * @returns Updated booking
-   */
-  public updateBookingSchedule(id: string, newDate: Date): Booking {
-    const booking = this.getBookingById(id);
-    booking.updateScheduledDate(newDate);
-    this.dataStore.updateBooking(booking);
-    return booking;
   }
 
   /**
@@ -133,11 +129,16 @@ export class BookingService {
    * @param notes - New notes
    * @returns Updated booking
    */
-  public updateBookingNotes(id: string, notes: string): Booking {
-    const booking = this.getBookingById(id);
-    booking.updateNotes(notes);
-    this.dataStore.updateBooking(booking);
-    return booking;
+  updateBookingNotes(id: string, notes: string): Booking {
+    try {
+      const booking = this.getBookingById(id);
+      booking.updateNotes(notes);
+      this.db.updateBooking(booking);
+      return booking;
+    } catch (err) {
+      const error = err as Error;
+      throw new Error('Could not update booking notes: ' + error.message);
+    }
   }
 
   /**
@@ -147,11 +148,19 @@ export class BookingService {
    * @param review - Review text
    * @returns Updated booking
    */
-  public addReview(id: string, rating: number, review: string): Booking {
-    const booking = this.getBookingById(id);
-    booking.addReview(rating, review);
-    this.dataStore.updateBooking(booking);
-    return booking;
+  addReview(id: string, rating: number, review: string): Booking {
+    try {
+      if (rating < 1 || rating > 5) {
+        throw new Error('Rating must be between 1 and 5');
+      }
+      const booking = this.getBookingById(id);
+      booking.addReview(rating, review);
+      this.db.updateBooking(booking);
+      return booking;
+    } catch (err) {
+      const error = err as Error;
+      throw new Error('Could not add review: ' + error.message);
+    }
   }
 
   /**
@@ -159,8 +168,13 @@ export class BookingService {
    * @param cleanerId - Cleaner ID
    * @returns Array of bookings
    */
-  public getBookingsByCleaner(cleanerId: string): Booking[] {
-    return this.dataStore.getBookingsByCleaner(cleanerId);
+  getBookingsByCleaner(cleanerId: string): Booking[] {
+    try {
+      return this.db.getBookingsByCleaner(cleanerId);
+    } catch (err) {
+      const error = err as Error;
+      throw new Error('Could not get cleaner bookings: ' + error.message);
+    }
   }
 
   /**
@@ -168,8 +182,13 @@ export class BookingService {
    * @param homeOwnerId - Home owner ID
    * @returns Array of bookings
    */
-  public getBookingsByHomeOwner(homeOwnerId: string): Booking[] {
-    return this.dataStore.getBookingsByHomeOwner(homeOwnerId);
+  getBookingsByHomeOwner(homeOwnerId: string): Booking[] {
+    try {
+      return this.db.getBookingsByHomeOwner(homeOwnerId);
+    } catch (err) {
+      const error = err as Error;
+      throw new Error('Could not get home owner bookings: ' + error.message);
+    }
   }
 
   /**
@@ -177,8 +196,30 @@ export class BookingService {
    * @param status - Booking status
    * @returns Array of bookings
    */
-  public getBookingsByStatus(status: BookingStatus): Booking[] {
-    return this.dataStore.getBookingsByStatus(status);
+  getBookingsByStatus(status: string): Booking[] {
+    try {
+      // Check if status is valid
+      if (!this.isValidStatus(status)) {
+        throw new Error('Invalid booking status: ' + status);
+      }
+      return this.db.getBookingsByStatus(status);
+    } catch (err) {
+      const error = err as Error;
+      throw new Error('Could not get bookings by status: ' + error.message);
+    }
+  }
+
+  /**
+   * Retrieves all bookings
+   * @returns Array of bookings
+   */
+  getAllBookings(): Booking[] {
+    try {
+      return this.db.getAllBookings();
+    } catch (err) {
+      const error = err as Error;
+      throw new Error('Could not get all bookings: ' + error.message);
+    }
   }
 
   /**
@@ -188,31 +229,29 @@ export class BookingService {
    * @param endDate - End of date range
    * @returns Analytics data
    */
-  public getCleanerAnalytics(cleanerId: string, startDate: Date, endDate: Date) {
-    const bookings = this.getBookingsByCleaner(cleanerId)
-      .filter(booking => 
-        booking.scheduledDate >= startDate && 
-        booking.scheduledDate <= endDate
-      );
+  getCleanerStats(cleanerId: string, startDate: Date, endDate: Date) {
+    try {
+      // Get cleaner's bookings in date range
+      const bookings = this.getBookingsByCleaner(cleanerId)
+        .filter(booking => 
+          booking.scheduledDate >= startDate && 
+          booking.scheduledDate <= endDate
+        );
 
-    const completedBookings = bookings.filter(b => b.status === BookingStatus.COMPLETED);
-    const totalEarnings = completedBookings.reduce((sum, b) => sum + b.totalPrice, 0);
-    const averageRating = completedBookings.reduce((sum, b) => sum + (b.rating || 0), 0) / 
-      (completedBookings.filter(b => b.rating).length || 1);
-
-    return {
-      totalBookings: bookings.length,
-      completedBookings: completedBookings.length,
-      cancelledBookings: bookings.filter(b => b.status === BookingStatus.CANCELLED).length,
-      totalEarnings,
-      averageRating,
-      bookingsByStatus: {
-        pending: bookings.filter(b => b.status === BookingStatus.PENDING).length,
-        confirmed: bookings.filter(b => b.status === BookingStatus.CONFIRMED).length,
-        completed: completedBookings.length,
-        cancelled: bookings.filter(b => b.status === BookingStatus.CANCELLED).length
-      }
-    };
+      // Calculate stats
+      return {
+        total: bookings.length,
+        completed: bookings.filter(b => b.status === 'COMPLETED').length,
+        cancelled: bookings.filter(b => b.status === 'CANCELLED').length,
+        totalEarnings: bookings
+          .filter(b => b.status === 'COMPLETED')
+          .reduce((sum, b) => sum + b.totalPrice, 0),
+        averageRating: this.calculateAverageRating(bookings)
+      };
+    } catch (err) {
+      const error = err as Error;
+      throw new Error('Could not get cleaner stats: ' + error.message);
+    }
   }
 
   /**
@@ -222,66 +261,46 @@ export class BookingService {
    * @param endDate - End of date range
    * @returns Analytics data
    */
-  public getHomeOwnerAnalytics(homeOwnerId: string, startDate: Date, endDate: Date) {
-    const bookings = this.getBookingsByHomeOwner(homeOwnerId)
-      .filter(booking => 
-        booking.scheduledDate >= startDate && 
-        booking.scheduledDate <= endDate
-      );
+  getHomeOwnerStats(homeOwnerId: string, startDate: Date, endDate: Date) {
+    try {
+      // Get home owner's bookings in date range
+      const bookings = this.getBookingsByHomeOwner(homeOwnerId)
+        .filter(booking => 
+          booking.scheduledDate >= startDate && 
+          booking.scheduledDate <= endDate
+        );
 
-    const completedBookings = bookings.filter(b => b.status === BookingStatus.COMPLETED);
-    const totalSpent = completedBookings.reduce((sum, b) => sum + b.totalPrice, 0);
-
-    return {
-      totalBookings: bookings.length,
-      completedBookings: completedBookings.length,
-      cancelledBookings: bookings.filter(b => b.status === BookingStatus.CANCELLED).length,
-      totalSpent,
-      bookingsByStatus: {
-        pending: bookings.filter(b => b.status === BookingStatus.PENDING).length,
-        confirmed: bookings.filter(b => b.status === BookingStatus.CONFIRMED).length,
-        completed: completedBookings.length,
-        cancelled: bookings.filter(b => b.status === BookingStatus.CANCELLED).length
-      }
-    };
+      // Calculate stats
+      return {
+        total: bookings.length,
+        completed: bookings.filter(b => b.status === 'COMPLETED').length,
+        cancelled: bookings.filter(b => b.status === 'CANCELLED').length,
+        totalSpent: bookings
+          .filter(b => b.status === 'COMPLETED')
+          .reduce((sum, b) => sum + b.totalPrice, 0),
+        averageRating: this.calculateAverageRating(bookings)
+      };
+    } catch (err) {
+      const error = err as Error;
+      throw new Error('Could not get home owner stats: ' + error.message);
+    }
   }
 
-  /**
-   * Generates platform-wide analytics
-   * @param startDate - Start of date range
-   * @param endDate - End of date range
-   * @returns Analytics data
-   */
-  public getPlatformAnalytics(startDate: Date, endDate: Date) {
-    const allBookings = Array.from(this.dataStore.getBookingsByStatus(BookingStatus.PENDING))
-      .concat(this.dataStore.getBookingsByStatus(BookingStatus.CONFIRMED))
-      .concat(this.dataStore.getBookingsByStatus(BookingStatus.COMPLETED))
-      .concat(this.dataStore.getBookingsByStatus(BookingStatus.CANCELLED))
-      .filter(booking => 
-        booking.scheduledDate >= startDate && 
-        booking.scheduledDate <= endDate
-      );
-
-    const completedBookings = allBookings.filter(b => b.status === BookingStatus.COMPLETED);
-    const totalRevenue = completedBookings.reduce((sum, b) => sum + b.totalPrice, 0);
-
-    return {
-      totalBookings: allBookings.length,
-      completedBookings: completedBookings.length,
-      cancelledBookings: allBookings.filter(b => b.status === BookingStatus.CANCELLED).length,
-      totalRevenue,
-      averageBookingValue: totalRevenue / (completedBookings.length || 1),
-      bookingsByStatus: {
-        pending: allBookings.filter(b => b.status === BookingStatus.PENDING).length,
-        confirmed: allBookings.filter(b => b.status === BookingStatus.CONFIRMED).length,
-        completed: completedBookings.length,
-        cancelled: allBookings.filter(b => b.status === BookingStatus.CANCELLED).length
-      }
-    };
+  // Helper to calculate average rating
+  private calculateAverageRating(bookings: Booking[]): number {
+    try {
+      // Only count bookings with ratings
+      const rated = bookings.filter(b => b.rating && b.rating > 0);
+      if (rated.length === 0) return 0;
+      
+      // Add up all ratings and divide by count
+      const sum = rated.reduce((total, b) => total + (b.rating || 0), 0);
+      return sum / rated.length;
+    } catch (err) {
+      const error = err as Error;
+      throw new Error('Could not calculate average rating: ' + error.message);
+    }
   }
+}
 
-  // Get all bookings
-  public getAllBookings(): Booking[] {
-    return Array.from(this.dataStore.getAllBookings());
-  }
-} 
+export { BookingService }; 

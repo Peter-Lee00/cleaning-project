@@ -1,89 +1,71 @@
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuid } from 'uuid';
 
-export interface IService {
-  id: string;
-  name: string;
-  description: string;
-  category: string;
-  basePrice: number;
-  duration: number; // in minutes
-  createdAt: Date;
-  updatedAt: Date;
+// Groups similar cleaning services together
+class ServiceCategory {
+  id: string;        // unique ID
+  name: string;      // category name
+  info: string;      // what it is
+  createdAt: Date;   // when made
+
+  // Make a new category
+  constructor(name: string, info: string) {
+    this.id = uuid();
+    this.name = name;
+    this.info = info;
+    this.createdAt = new Date();
+  }
 }
 
-export class Service implements IService {
-  public readonly id: string;
-  public name: string;
-  public description: string;
-  public category: string;
-  public basePrice: number;
-  public duration: number;
-  public readonly createdAt: Date;
-  public updatedAt: Date;
+// A specific cleaning service
+class Service {
+  id: string;        // unique ID
+  name: string;      // service name
+  info: string;      // what it includes
+  category: ServiceCategory;  // type of service
+  price: number;     // cost per hour
+  hours: number;     // how many hours
+  createdAt: Date;   // when made
+  updatedAt: Date;   // when changed
 
+  // Make a new service
   constructor(
     name: string,
-    description: string,
-    category: string,
-    basePrice: number,
-    duration: number
+    info: string,
+    category: ServiceCategory,
+    price: number,
+    hours: number
   ) {
-    this.id = uuidv4();
+    this.id = uuid();
     this.name = name;
-    this.description = description;
+    this.info = info;
     this.category = category;
-    this.basePrice = basePrice;
-    this.duration = duration;
+    this.price = price;
+    this.hours = hours;
     this.createdAt = new Date();
     this.updatedAt = new Date();
   }
 
-  public updateDetails(
+  // Get total cost
+  getPrice(): number {
+    return this.price * this.hours;
+  }
+
+  // Update service info
+  update(
     name?: string,
-    description?: string,
-    category?: string,
-    basePrice?: number,
-    duration?: number
-  ): void {
+    info?: string,
+    price?: number,
+    hours?: number
+  ) {
+    // Only change what's given
     if (name) this.name = name;
-    if (description) this.description = description;
-    if (category) this.category = category;
-    if (basePrice) this.basePrice = basePrice;
-    if (duration) this.duration = duration;
+    if (info) this.info = info;
+    if (price) this.price = price;
+    if (hours) this.hours = hours;
+    
     this.updatedAt = new Date();
   }
 }
 
-export class ServiceCategory {
-  public readonly id: string;
-  public name: string;
-  public description: string;
-  public services: Service[];
-  public readonly createdAt: Date;
-  public updatedAt: Date;
-
-  constructor(name: string, description: string) {
-    this.id = uuidv4();
-    this.name = name;
-    this.description = description;
-    this.services = [];
-    this.createdAt = new Date();
-    this.updatedAt = new Date();
-  }
-
-  public addService(service: Service): void {
-    this.services.push(service);
-    this.updatedAt = new Date();
-  }
-
-  public removeService(serviceId: string): void {
-    this.services = this.services.filter(service => service.id !== serviceId);
-    this.updatedAt = new Date();
-  }
-
-  public updateDetails(name?: string, description?: string): void {
-    if (name) this.name = name;
-    if (description) this.description = description;
-    this.updatedAt = new Date();
-  }
-} 
+// Let other files use these
+export { Service, ServiceCategory }; 
