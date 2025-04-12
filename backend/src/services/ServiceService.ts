@@ -1,6 +1,5 @@
 import { Service, ServiceCategory } from '../models/Service';
 import { DataStore } from '../data/DataStore';
-import { v4 as uuidv4 } from 'uuid';
 
 // Handle all service-related stuff
 class ServiceService {

@@ -1,4 +1,4 @@
-import { Booking, BookingStatus } from '../models/Booking';
+import { Booking } from '../models/Booking';
 import { DataStore } from '../data/DataStore';
 import { UserService } from './UserService';
 import { ServiceService } from './ServiceService';
@@ -46,9 +46,16 @@ class BookingService {
     notes: string = ''
   ): Booking {
     try {
-      // Check if users exist
+      // Check if users exist and have correct roles
       const cleaner = this.userService.getUserById(cleanerId);
+      if (!cleaner) {
+        throw new Error('Cleaner not found');
+      }
+      
       const homeOwner = this.userService.getUserById(homeOwnerId);
+      if (!homeOwner) {
+        throw new Error('Home owner not found');
+      }
       
       // Check if service exists
       const service = this.serviceService.getServiceById(serviceId);

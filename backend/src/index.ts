@@ -9,8 +9,12 @@ import { BookingStatus } from './models/Booking';
 const app = express();
 const port = 3001;
 
-// basic setup
-app.use(cors());
+// Configure CORS
+app.use(cors({
+  origin: 'http://localhost:3000',
+  credentials: true
+}));
+
 app.use(express.json());
 
 // services

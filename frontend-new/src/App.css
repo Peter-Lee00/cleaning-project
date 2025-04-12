@@ -1,0 +1,253 @@
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 20px;
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.connection-status {
+  margin: 20px 0;
+  padding: 10px;
+  border-radius: 5px;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Login Form Styles */
+.login-container {
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 20px;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 400px;
+  margin: 20px auto;
+}
+
+.form-group {
+  margin-bottom: 15px;
+  text-align: left;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 16px;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+button {
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  margin: 10px 0;
+}
+
+button:hover {
+  background-color: #45a049;
+}
+
+.error-message {
+  color: #ff6b6b;
+  margin: 10px 0;
+}
+
+.success-message {
+  color: #4CAF50;
+  margin: 10px 0;
+}
+
+/* Top Bar Styles */
+.top-bar {
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 15px;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 800px;
+  margin: 20px auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.top-bar p {
+  margin: 0;
+  font-size: 18px;
+}
+
+.top-bar button {
+  background-color: #ff6b6b;
+  margin: 0;
+}
+
+.top-bar button:hover {
+  background-color: #ff5252;
+}
+
+/* User List Styles */
+.user-list-container {
+  width: 100%;
+  max-width: 800px;
+  margin: 20px auto;
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.user-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.user-table th,
+.user-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.user-table th {
+  background-color: rgba(255, 255, 255, 0.1);
+  font-weight: bold;
+}
+
+.user-table tr:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* User Dashboard Styles */
+.user-dashboard {
+  width: 100%;
+  max-width: 800px;
+  margin: 20px auto;
+}
+
+.user-info {
+  width: 100%;
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 20px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+}
+
+.user-info p {
+  margin: 5px 0;
+}
+
+.user-info button {
+  background-color: #ff6b6b;
+}
+
+.user-info button:hover {
+  background-color: #ff5252;
+}
+
+/* Role Welcome Styles */
+.role-welcome {
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 20px;
+  border-radius: 8px;
+  margin: 20px auto;
+  text-align: center;
+}
+
+.role-welcome h3 {
+  margin: 0;
+  color: #4CAF50;
+  font-size: 1.5em;
+}
+
+.auth-container {
+  width: 100%;
+  max-width: 400px;
+  margin: 20px auto;
+}
+
+.auth-toggle {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.auth-toggle button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  background-color: #666;
+  color: white;
+  font-size: 16px;
+}
+
+.auth-toggle button.active {
+  background-color: #4CAF50;
+}
+
+.logout-button {
+  background-color: #f44336;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  margin-top: 20px;
+}
+
+.logout-button:hover {
+  background-color: #d32f2f;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  font-size: 20px;
+  color: #666;
+}

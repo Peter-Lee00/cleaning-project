@@ -37,5 +37,35 @@
     "createdAt": "2025-04-12T01:20:04.256Z",
     "updatedAt": "2025-04-12T01:20:04.256Z",
     "favoriteCleaners": []
+  },
+  "bf51948c-7c69-4093-9bf3-8c984aa6b011": {
+    "id": "bf51948c-7c69-4093-9bf3-8c984aa6b011",
+    "email": "test4@example.com",
+    "password": "12345678",
+    "name": "testuser4",
+    "role": "HOME_OWNER",
+    "createdAt": "2025-04-12T02:14:56.576Z",
+    "updatedAt": "2025-04-12T02:14:56.576Z",
+    "favoriteCleaners": []
+  },
+  "e51e7c63-2018-46f7-849c-64fe829c92f5": {
+    "id": "e51e7c63-2018-46f7-849c-64fe829c92f5",
+    "email": "test5@example.com",
+    "password": "12345678",
+    "name": "testuser4",
+    "role": "HOME_OWNER",
+    "createdAt": "2025-04-12T02:55:15.519Z",
+    "updatedAt": "2025-04-12T02:55:15.519Z",
+    "favoriteCleaners": []
+  },
+  "71756ea9-2c51-4d5b-ba24-47762834af66": {
+    "id": "71756ea9-2c51-4d5b-ba24-47762834af66",
+    "email": "test6@example.com",
+    "password": "12345678",
+    "name": "testuser6",
+    "role": "HOME_OWNER",
+    "createdAt": "2025-04-12T03:01:34.130Z",
+    "updatedAt": "2025-04-12T03:01:34.130Z",
+    "favoriteCleaners": []
   }
 }

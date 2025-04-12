@@ -1,142 +1,203 @@
 import { User, Admin, Cleaner, HomeOwner, UserRole } from '../models/User';
 import { Service, ServiceCategory } from '../models/Service';
 import { Booking, BookingStatus } from '../models/Booking';
+import fs from 'fs';
+import path from 'path';
 
-// Simple in-memory database
-class DataStore {
-  // Store our data
-  private static instance: DataStore;
-  private users = new Map<string, User>();
-  private services = new Map<string, Service>();
-  private categories = new Map<string, ServiceCategory>();
-  private bookings = new Map<string, Booking>();
+// Helper function to generate random string
+const _r = (l: number) => Array(l).fill(0).map(() => Math.random().toString(36)[2]).join('');
 
-  // Make it a singleton
-  private constructor() {}
+// Main storage handler
+class StorageManager {
+  private static _i: StorageManager;
+  private _u = new Map<string, User>();
+  private _s = new Map<string, Service>();
+  private _c = new Map<string, ServiceCategory>();
+  private _b = new Map<string, Booking>();
+  private _p: string;
 
-  static getInstance(): DataStore {
-    if (!DataStore.instance) {
-      DataStore.instance = new DataStore();
+  private constructor() {
+    this._p = path.join(__dirname, '../../data');
+    if (!fs.existsSync(this._p)) {
+      fs.mkdirSync(this._p, { recursive: true });
     }
-    return DataStore.instance;
+    this._l();
   }
 
-  // User methods
-  addUser(user: User): void {
-    this.users.set(user.id, user);
+  public static get i(): StorageManager {
+    if (!StorageManager._i) {
+      StorageManager._i = new StorageManager();
+    }
+    return StorageManager._i;
   }
 
-  getUserById(id: string): User | undefined {
-    return this.users.get(id);
+  public static getInstance(): StorageManager {
+    return StorageManager.i;
   }
 
-  getUserByEmail(email: string): User | undefined {
-    return Array.from(this.users.values()).find(user => user.email === email);
-  }
+  private _l(): void {
+    try {
+      const _f = (n: string) => path.join(this._p, `${n}.json`);
+      const _r = (p: string) => {
+        if (fs.existsSync(p)) {
+          return JSON.parse(fs.readFileSync(p, 'utf8'));
+        }
+        return {};
+      };
 
-  getUsersByRole(role: typeof UserRole[keyof typeof UserRole]): User[] {
-    return Array.from(this.users.values()).filter(user => user.role === role);
-  }
-
-  updateUser(user: User): void {
-    if (this.users.has(user.id)) {
-      this.users.set(user.id, user);
+      this._u = new Map(Object.entries(_r(_f('u'))));
+      this._s = new Map(Object.entries(_r(_f('s'))));
+      this._c = new Map(Object.entries(_r(_f('c'))));
+      this._b = new Map(Object.entries(_r(_f('b'))));
+    } catch (e) {
+      console.error('Failed to load:', e);
     }
   }
 
-  deleteUser(id: string): void {
-    this.users.delete(id);
+  private _w(): void {
+    try {
+      const _f = (n: string, d: any) => {
+        const p = path.join(this._p, `${n}.json`);
+        fs.writeFileSync(p, JSON.stringify(Object.fromEntries(d), null, 2));
+      };
+
+      _f('u', this._u);
+      _f('s', this._s);
+      _f('c', this._c);
+      _f('b', this._b);
+    } catch (e) {
+      console.error('Failed to save:', e);
+    }
   }
 
-  // Service methods
-  addService(service: Service): void {
-    this.services.set(service.id, service);
+  // User operations
+  addUser(u: User): void {
+    this._u.set(u.id, u);
+    this._w();
   }
 
-  getServiceById(id: string): Service | undefined {
-    return this.services.get(id);
+  getUserById(i: string): User | undefined {
+    return this._u.get(i);
   }
 
-  getServicesByCategory(categoryId: string): Service[] {
-    return Array.from(this.services.values())
-      .filter(service => service.category.id === categoryId);
+  getUserByEmail(e: string): User | undefined {
+    return Array.from(this._u.values()).find(u => u.email === e);
+  }
+
+  getUsersByRole(r: typeof UserRole[keyof typeof UserRole]): User[] {
+    return Array.from(this._u.values()).filter(u => u.role === r);
+  }
+
+  updateUser(u: User): void {
+    if (this._u.has(u.id)) {
+      this._u.set(u.id, u);
+      this._w();
+    }
+  }
+
+  deleteUser(i: string): void {
+    this._u.delete(i);
+    this._w();
+  }
+
+  // Service operations
+  addService(s: Service): void {
+    this._s.set(s.id, s);
+    this._w();
+  }
+
+  getServiceById(i: string): Service | undefined {
+    return this._s.get(i);
+  }
+
+  getServicesByCategory(c: string): Service[] {
+    return Array.from(this._s.values())
+      .filter(s => s.category.id === c);
   }
 
   getAllServices(): Service[] {
-    return Array.from(this.services.values());
+    return Array.from(this._s.values());
   }
 
-  updateService(service: Service): void {
-    if (this.services.has(service.id)) {
-      this.services.set(service.id, service);
+  updateService(s: Service): void {
+    if (this._s.has(s.id)) {
+      this._s.set(s.id, s);
+      this._w();
     }
   }
 
-  deleteService(id: string): void {
-    this.services.delete(id);
+  deleteService(i: string): void {
+    this._s.delete(i);
+    this._w();
   }
 
-  // Category methods
-  addCategory(category: ServiceCategory): void {
-    this.categories.set(category.id, category);
+  // Category operations
+  addCategory(c: ServiceCategory): void {
+    this._c.set(c.id, c);
+    this._w();
   }
 
-  getCategoryById(id: string): ServiceCategory | undefined {
-    return this.categories.get(id);
+  getCategoryById(i: string): ServiceCategory | undefined {
+    return this._c.get(i);
   }
 
   getAllCategories(): ServiceCategory[] {
-    return Array.from(this.categories.values());
+    return Array.from(this._c.values());
   }
 
-  updateCategory(category: ServiceCategory): void {
-    if (this.categories.has(category.id)) {
-      this.categories.set(category.id, category);
+  updateCategory(c: ServiceCategory): void {
+    if (this._c.has(c.id)) {
+      this._c.set(c.id, c);
+      this._w();
     }
   }
 
-  deleteCategory(id: string): void {
-    this.categories.delete(id);
+  deleteCategory(i: string): void {
+    this._c.delete(i);
+    this._w();
   }
 
-  // Booking methods
-  addBooking(booking: Booking): void {
-    this.bookings.set(booking.id, booking);
+  // Booking operations
+  addBooking(b: Booking): void {
+    this._b.set(b.id, b);
+    this._w();
   }
 
-  getBookingById(id: string): Booking | undefined {
-    return this.bookings.get(id);
+  getBookingById(i: string): Booking | undefined {
+    return this._b.get(i);
   }
 
-  getBookingsByCleaner(cleanerId: string): Booking[] {
-    return Array.from(this.bookings.values())
-      .filter(booking => booking.cleanerId === cleanerId);
+  getBookingsByCleaner(c: string): Booking[] {
+    return Array.from(this._b.values())
+      .filter(b => b.cleanerId === c);
   }
 
-  getBookingsByHomeOwner(homeOwnerId: string): Booking[] {
-    return Array.from(this.bookings.values())
-      .filter(booking => booking.homeOwnerId === homeOwnerId);
+  getBookingsByHomeOwner(h: string): Booking[] {
+    return Array.from(this._b.values())
+      .filter(b => b.homeOwnerId === h);
   }
 
-  getBookingsByStatus(status: typeof BookingStatus[keyof typeof BookingStatus]): Booking[] {
-    return Array.from(this.bookings.values())
-      .filter(booking => booking.status === status);
+  getBookingsByStatus(s: typeof BookingStatus[keyof typeof BookingStatus]): Booking[] {
+    return Array.from(this._b.values())
+      .filter(b => b.status === s);
   }
 
   getAllBookings(): Booking[] {
-    return Array.from(this.bookings.values());
+    return Array.from(this._b.values());
   }
 
-  updateBooking(booking: Booking): void {
-    if (this.bookings.has(booking.id)) {
-      this.bookings.set(booking.id, booking);
+  updateBooking(b: Booking): void {
+    if (this._b.has(b.id)) {
+      this._b.set(b.id, b);
+      this._w();
     }
   }
 
-  deleteBooking(id: string): void {
-    this.bookings.delete(id);
+  deleteBooking(i: string): void {
+    this._b.delete(i);
+    this._w();
   }
 }
 
-// Let other files use this
-export { DataStore }; 
+// Export with a different name
+export { StorageManager as DataStore }; 
