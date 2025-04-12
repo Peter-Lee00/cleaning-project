@@ -24,11 +24,12 @@ cleaning-project/
 ## Features
 
 ### Backend
-- User authentication and authorization
+- User authentication and authorization (Admin, Cleaner, Home Owner, User roles)
 - Service management (categories, services)
 - Booking system with status tracking
 - Review and rating system
 - In-memory data store with TypeScript types
+- Analytics and reporting
 
 ### Frontend
 - Modern UI with Tailwind CSS
@@ -105,6 +106,7 @@ The backend will run on http://localhost:3001 and the frontend on http://localho
 - Uses service-based architecture
 - In-memory data store (can be extended to use a database)
 - Includes test data generation script
+- Object-Oriented Design
 
 ### Frontend
 - Built with Next.js 15 (App Router)
@@ -114,4 +116,4 @@ The backend will run on http://localhost:3001 and the frontend on http://localho
 
 ## License
 
-This project is licensed under the MIT License. 
+This project is licensed under the MIT License.

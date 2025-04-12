@@ -25,7 +25,9 @@
     "lint:frontend": "cd frontend && npm run lint",
     "format": "npm run format:backend && npm run format:frontend",
     "format:backend": "cd backend && npm run format",
-    "format:frontend": "cd frontend && npm run format"
+    "format:frontend": "cd frontend && npm run format",
+    "generate-data": "cd backend && npm run generate-data",
+    "setup": "npm run install:all && npm run generate-data"
   },
   "keywords": [
     "cleaning",

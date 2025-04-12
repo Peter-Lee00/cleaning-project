@@ -1,0 +1,41 @@
+{
+  "49ea68b7-2040-4d85-976b-dc7445fe4782": {
+    "id": "49ea68b7-2040-4d85-976b-dc7445fe4782",
+    "email": "admin@cleanconnect.com",
+    "password": "Admin123!",
+    "name": "Admin User",
+    "role": "ADMIN",
+    "createdAt": "2025-04-11T16:13:44.861Z",
+    "updatedAt": "2025-04-11T16:13:44.861Z"
+  },
+  "f1aecf71-b379-4a78-bb2f-05770c43ee17": {
+    "id": "f1aecf71-b379-4a78-bb2f-05770c43ee17",
+    "email": "test@example.com",
+    "password": "Password123!",
+    "name": "Test User",
+    "role": "HOME_OWNER",
+    "createdAt": "2025-04-12T01:13:39.391Z",
+    "updatedAt": "2025-04-12T01:13:39.391Z",
+    "favoriteCleaners": []
+  },
+  "8816ab6f-ed47-4712-980b-7027d7e07bd3": {
+    "id": "8816ab6f-ed47-4712-980b-7027d7e07bd3",
+    "email": "test2@gmail.com",
+    "password": "12345678",
+    "name": "test2",
+    "role": "HOME_OWNER",
+    "createdAt": "2025-04-12T01:14:57.339Z",
+    "updatedAt": "2025-04-12T01:14:57.339Z",
+    "favoriteCleaners": []
+  },
+  "ab2a5293-d3c7-446c-89ad-db52a5bea051": {
+    "id": "ab2a5293-d3c7-446c-89ad-db52a5bea051",
+    "email": "test3@gmail.com",
+    "password": "12345678",
+    "name": "testuser3",
+    "role": "HOME_OWNER",
+    "createdAt": "2025-04-12T01:20:04.256Z",
+    "updatedAt": "2025-04-12T01:20:04.256Z",
+    "favoriteCleaners": []
+  }
+}
